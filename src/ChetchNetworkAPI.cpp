@@ -1,50 +1,86 @@
 #include <ChetchNetworkAPI.h>
-#include <ESP8266WiFi.h>
 
 namespace Chetch{
 
 bool NetworkAPI::trace = false;
 
-bool NetworkAPI::registerService(const char *networkServiceURL, const char *serviceName, int port, int timeout){
-    HTTPClient http;  //Declare an object of class HTTPClient
-    bool success = false;
+int NetworkAPI::registerService(Client& client, const char *networkServiceIP, int networkServicePort, const char *serviceName, int port, int timeout){
     unsigned long started = millis();
+
+    if(trace){
+        Serial.print("Attempting to register "); Serial.print(serviceName); Serial.print(":"); Serial.println(port);
+        Serial.print("Connecting client to "); Serial.print(networkServiceIP); Serial.print(":"); Serial.println(networkServicePort);
+    }
+
     do{
-        if(trace){
-            Serial.print("Registering this device @: ");
-            Serial.println(networkServiceURL);
+        client.connect(networkServiceIP, networkServicePort);
+        if(!client.connected()){
+            if(trace)Serial.println("Failed to connect ...retrying...");
+            delay(1000);
         }
-        http.begin(networkServiceURL);  //Open connection and Specify request destination
-        http.addHeader("Content-Type", "application/json"); //api expects JSON
+    } while (!client.connected() || (timeout > 0 && millis() - started < timeout));
 
-        //manually create a JSON string and PUT to the API
-        char buf[128];
-        sprintf(buf, "{\"service_name\": \"%s\",\"endpoint_port\":%d,\"protocols\":\"tcp\"}", serviceName, port);
-        int httpCode = http.PUT(buf);   //Send the request
+    if(!client.connected()){
+        if(trace)Serial.println("Failed to connect!");
+        return 0;
+    } else {
+        if(trace)Serial.println("Client connected!");
+    }
 
-        if(trace){
-            Serial.print("Return code: ");
-            Serial.println(httpCode);
-        }
+    //registration data to send
+    char buf[128];
+    sprintf(buf, "{\"service_name\": \"%s\",\"endpoint_port\":%d,\"protocols\":\"tcp\"}", serviceName, port);
+    int statusCode = 0; //status code of response
+        
+    do{ 
+        if(trace)Serial.println("Sending http request to newtwork service server...");
+        //formulate HTTP request
+        client.println("PUT /api/service HTTP/1.1");
+        client.print("Host: "); client.println(networkServiceIP);
+        client.println("Content-Type: application/json");
+        client.print("Content-Length: ");
+        client.println(strlen(buf));
+        client.println();
+        client.println(buf);
+        client.println();
 
-        //check if successful and close (if not successful, wait a bit and try again)
-        success = httpCode == HTTP_CODE_OK;
-        http.end();   //Close connection
-        if(!success){
-            if(trace){
-                Serial.print("Failed to register service: return code ");
-                Serial.println(httpCode);
-            }
-            if(timeout > 0 && (millis() - started > timeout)){
+        //wait for response
+        int started = -1;
+        while(client.connected() ||  (timeout > 0 && millis() - started < timeout)){
+            if(client.available()){
+                char c = client.read();
+                if(c == ' '){
+                    started = 2;
+                    continue;
+                }
+                if(started >= 0){
+                    int n = (c - 48) * (started == 2 ? 100 : (started == 1 ? 10 : 1));
+                    started--;
+                    statusCode += n;
+                    if(started < 0){
+                        break;
+                    }
+                }
+            } // end available loop
+            if(statusCode > 0 && started < 0){
                 break;
-            } else {
-                delay(2000);
+            }
+        } //end while connected
+
+        if(statusCode == 0){
+            if(trace)Serial.println("Failed to get status code!");
+            delay(1000);
+        } else {
+            if(trace){
+                Serial.print("Received status code: ");
+                Serial.println(statusCode);
             }
         }
+    } while (statusCode == 0 || (timeout > 0 && millis() - started < timeout));
     
-    } while (!success);
+    client.stop();
 
-    return success;
+    return statusCode;
 }
 
 } //end namespace

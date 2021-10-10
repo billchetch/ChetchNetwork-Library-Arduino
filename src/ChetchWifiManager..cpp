@@ -1,3 +1,5 @@
+#if defined(ESP8266)
+
 #include <ChetchWifiManager.h>
 
 namespace Chetch{
@@ -95,3 +97,5 @@ bool WifiManager::hasIP(){
 }
 
 } //end namespace
+
+#endif

@@ -1,6 +1,8 @@
 #ifndef CHETCH_WIFIMANAGER_H
 #define CHETCH_WIFIMANAGER_H
 
+#if defined(ESP8266)
+
 #include <ESP8266WiFi.h>
 
 namespace Chetch{
@@ -34,5 +36,6 @@ class WifiManager{
 };
 
 } //end namespace
+#endif
 
 #endif
