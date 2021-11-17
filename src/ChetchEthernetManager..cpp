@@ -19,14 +19,14 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte*
 
   	// Check for Ethernet hardware present
     if (Ethernet.hardwareStatus() == EthernetNoHardware) {
-        if(trace)Serial.println("Ethernet shield was not found.  Sorry, can't run without hardware. :(");
+        if(trace)Serial.println("No hardware found.  Sorry, can't run without hardware. :(");
         return false;
     } else {
         if(trace)Serial.println("Hardware connection ok");
     }
 
-    if(trace){}
-        Serial.println("Local IP: ");
+    if(trace){
+        Serial.print("Local IP: ");
         Serial.println(Ethernet.localIP());
     }
     return true;
