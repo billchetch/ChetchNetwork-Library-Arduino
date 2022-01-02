@@ -32,4 +32,8 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte*
     return true;
 }
 
+bool EthernetManager::begin(byte* mac, byte* ip, byte* router, byte* subnet, int timeout){
+    return EthernetManager::begin(mac, ip, router, router, subnet, timeout);
+}
+
 } //end namespace
