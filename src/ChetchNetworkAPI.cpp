@@ -6,25 +6,31 @@ bool NetworkAPI::trace = false;
 
 int NetworkAPI::registerService(Client& client, const char *networkServiceIP, int networkServicePort, const char *serviceName, int port, int timeout){
     unsigned long started = millis();
+    unsigned long duration = 0;
 
     if(trace){
         Serial.print("Attempting to register "); Serial.print(serviceName); Serial.print(":"); Serial.println(port);
-        Serial.print("Connecting client to "); Serial.print(networkServiceIP); Serial.print(":"); Serial.println(networkServicePort);
+        Serial.print("Connecting HTTP client to "); Serial.print(networkServiceIP); Serial.print(":"); Serial.println(networkServicePort);
     }
 
+    int retryAttemptCount = 0;
     do{
         client.connect(networkServiceIP, networkServicePort);
         if(!client.connected()){
-            if(trace)Serial.println("Failed to connect ...retrying...");
+            retryAttemptCount++;
+            if(trace){
+                Serial.println("HTTP client failed to connect ...retrying ");
+             }
             delay(1000);
         }
-    } while (!client.connected() || (timeout > 0 && millis() - started < timeout));
+        duration = millis() - started;
+    } while (!client.connected() && (timeout <= 0 || duration < timeout));
 
     if(!client.connected()){
-        if(trace)Serial.println("Failed to connect!");
+        if(trace)Serial.println("HTTP client failed to connect!");
         return 0;
     } else {
-        if(trace)Serial.println("Client connected!");
+        if(trace)Serial.println("HTTP client connected!");
     }
 
     //registration data to send
@@ -76,7 +82,8 @@ int NetworkAPI::registerService(Client& client, const char *networkServiceIP, in
                 Serial.println(statusCode);
             }
         }
-    } while (statusCode == 0 || (timeout > 0 && millis() - started < timeout));
+        duration = millis() - started;
+    } while (statusCode == 0 && (timeout <= 0 || duration < timeout));
     
     client.stop();
 
