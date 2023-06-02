@@ -36,4 +36,8 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* router, byte* subnet, int
     return EthernetManager::begin(mac, ip, router, router, subnet, timeout);
 }
 
+bool EthernetManager::isLinked(){
+    return Ethernet.linkStatus() == EthernetLinkStatus::LinkON;
+}
+
 } //end namespace
