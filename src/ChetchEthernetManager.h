@@ -13,6 +13,7 @@ class EthernetManager{
         static bool begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte* subnet, int timeout = -1);
 	    static bool begin(byte* mac, byte* ip, byte* router, byte* subnet, int timeout = -1);
         static bool isLinked();
+        static bool hardwareError();
 };
 
 } //end namespace

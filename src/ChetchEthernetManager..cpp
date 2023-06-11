@@ -18,7 +18,7 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte*
     Ethernet.begin(mac, ip, dns, gateway, subnet);
 
   	// Check for Ethernet hardware present
-    if (Ethernet.hardwareStatus() == EthernetNoHardware) {
+    if (hardwareError()) {
         if(trace)Serial.println("No hardware found.  Sorry, can't run without hardware. :(");
         return false;
     } else {
@@ -38,6 +38,10 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* router, byte* subnet, int
 
 bool EthernetManager::isLinked(){
     return Ethernet.linkStatus() == EthernetLinkStatus::LinkON;
+}
+
+bool EthernetManager::hardwareError(){
+    Ethernet.hardwareStatus() == EthernetNoHardware;
 }
 
 } //end namespace
