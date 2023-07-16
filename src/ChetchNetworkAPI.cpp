@@ -4,6 +4,12 @@ namespace Chetch{
 
 bool NetworkAPI::trace = false;
 
+int NetworkAPI::registerService(Client& client, byte *networkServiceIP, int networkServicePort, const char *serviceName, int port, int timeout){
+    char buffer[15];
+    sprintf(buffer, "%d.%d.%d.%d", networkServiceIP[0], networkServiceIP[1], networkServiceIP[2], networkServiceIP[3]);
+    return registerService(client, buffer, networkServicePort, serviceName, port, timeout);
+}
+
 int NetworkAPI::registerService(Client& client, const char *networkServiceIP, int networkServicePort, const char *serviceName, int port, int timeout){
     unsigned long started = millis();
     unsigned long duration = 0;
