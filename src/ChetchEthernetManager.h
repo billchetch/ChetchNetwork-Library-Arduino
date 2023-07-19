@@ -14,6 +14,7 @@ class EthernetManager{
 	    static bool begin(byte* mac, byte* ip, byte* router, byte* subnet, int timeout = -1);
         static bool isLinked();
         static bool hardwareError();
+        static void resetHardware(byte resetPin);
 };
 
 } //end namespace
