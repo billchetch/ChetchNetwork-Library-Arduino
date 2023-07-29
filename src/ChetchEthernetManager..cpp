@@ -5,7 +5,7 @@ namespace Chetch{
 bool EthernetManager::trace = false;
 
 //TODO: implement timeout
-bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte* subnet, int timeout){
+bool EthernetManager::begin(byte* mac, IPAddress ip, IPAddress dns, IPAddress gateway, IPAddress subnet, int timeout){
     
     unsigned long started = millis();
     bool begun = false;
@@ -13,9 +13,12 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte*
     do{
         if(trace){
             Serial.print("Beginning Ethernet with mac: ");
-            char macAddr[18];
-            sprintf(macAddr, "%2X:%2X:%2X:%2X:%2X:%2X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-            Serial.println(macAddr);
+            char buffer[18];
+            sprintf(buffer, "%2X:%2X:%2X:%2X:%2X:%2X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+            Serial.println(buffer);
+            Serial.print("And IP: ");
+            sprintf(buffer, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+            Serial.println(buffer);
         }
         Ethernet.begin(mac, ip, dns, gateway, subnet);
 
@@ -63,12 +66,16 @@ bool EthernetManager::begin(byte* mac, byte* ip, byte* dns, byte* gateway, byte*
     }
 }
 
-bool EthernetManager::begin(byte* mac, byte* ip, byte* router, byte* subnet, int timeout){
-    return EthernetManager::begin(mac, ip, router, router, subnet, timeout);
+bool EthernetManager::begin(byte* mac, IPAddress ip, IPAddress gateway, IPAddress subnet, int timeout){
+    return EthernetManager::begin(mac, ip, gateway, gateway, subnet, timeout);
 }
 
-bool EthernetManager::isLinked(){
-    return Ethernet.linkStatus() == EthernetLinkStatus::LinkON;
+bool EthernetManager::isLinked(bool optimistic){
+    if(optimistic){
+        return Ethernet.linkStatus() != EthernetLinkStatus::LinkOFF;
+    } else {
+        return Ethernet.linkStatus() == EthernetLinkStatus::LinkON;
+    }
 }
 
 bool EthernetManager::hardwareError(){
