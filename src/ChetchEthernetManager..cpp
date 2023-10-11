@@ -22,13 +22,15 @@ bool EthernetManager::begin(byte* mac, IPAddress ip, IPAddress dns, IPAddress ga
         }
         Ethernet.begin(mac, ip, dns, gateway, subnet);
 
-
         delay(100);
+
+        bool error = false;
 
         // Check for Ethernet hardware present
         if (hardwareError()) {
             if(trace)Serial.println("No hardware found.  Sorry, can't run without hardware. :(");
             begun = false;
+            error = true;
         } else {
             if(trace)Serial.println("Hardware connection ok");
         }
@@ -39,10 +41,22 @@ bool EthernetManager::begin(byte* mac, IPAddress ip, IPAddress dns, IPAddress ga
         if(!isLinked()) {
             if(trace)Serial.println("Ethernet not linked");
             begun = false;
+            error = true;
         } else {
             if(trace)Serial.println("Ethernet is linked");
-            begun = true;
+            begun = !error;
         }
+
+        //compare IP address
+        if(ip == Ethernet.localIP()){
+            begun = !error;
+        } else {
+            error = true;
+            if(trace){
+                Serial.println("Requested IP and obtained IP do not match");
+            }
+        }
+
 
         if(!begun && timeout > 0){
             timedOut = millis() - started > timeout;
@@ -79,7 +93,7 @@ bool EthernetManager::isLinked(bool optimistic){
 }
 
 bool EthernetManager::hardwareError(){
-    Ethernet.hardwareStatus() == EthernetNoHardware;
+    return Ethernet.hardwareStatus() == EthernetNoHardware;
 }
 
 void EthernetManager::resetHardware(byte resetPin){
