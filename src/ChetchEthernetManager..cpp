@@ -63,8 +63,8 @@ bool EthernetManager::begin(byte* mac, IPAddress ip, IPAddress dns, IPAddress ga
             if(timedOut && trace)Serial.println("Ethernet begin process timed out");
         }
 
-        if(!begun)delay(500);
-    } while(!begun && !timedOut);
+        if(!begun && timeout > 0)delay(500);
+    } while(!begun && !timedOut && timeout > 0);
 
   	if(begun){
         if(trace){
